@@ -19,6 +19,7 @@ if  (~exist('dataLog','var'))
         gridType=strjoin(ElecList(gridTypeIndex));
         folderSourceString = 'D:\';
         dataLog = {'subjectName',subjectName;'gridType',gridType;'expDate',expDate;'protocolName',protocolName};
+        dataLog{14,2} = folderSourceString;
         clear ElecList;
         clear gridTypeIndex;
         clear folderName;
@@ -40,10 +41,10 @@ else
     protocolName = strjoin(dataLog(4,2));
 end
 
-ainpSelect = 'ainp5';
+ainpSelect = 'ainp3';
 LLFlag=1;
 LLExtractFlag=1;
-reallignFlag = 0;
+reallignFlag = 1;
 ignoreTargetStimFlag=1; % For GaborRFMap stimuli, set this to 1 if the program is run in the fixation mode.
 
 electrodesToStore = [];
@@ -51,7 +52,7 @@ timeStartFromBaseLine = str2num(cell2mat(inputdlg('Time start from baseline:')))
 deltaT = str2num(cell2mat(inputdlg('Total length:')));
 
 frameRate=100;
-deviceName = 'BP';
+deviceName = 'BR';
 Fs=2000;
 
 [~,folderName]=getFolderDetails(dataLog);
@@ -146,10 +147,10 @@ end
     % useful combinations
 if strncmpi(protocolName,'GAV',3)
     disp([char(10) 'Extracting Parameter combinations for GAV Protocol...']);
-    getDisplayCombinationsGAV(folderExtract,0);
+    getDisplayCombinationsGAV(folderExtract);
     if LLFlag
         disp([char(10) 'Extracting Parameter combinations for GAV Protocol using Lablib data...']);
-        getDisplayCombinationsGAV(folderExtract,1);
+        getDisplayCombinationsGAV(folderExtract);
     end
 elseif strncmpi(protocolName,'GRF',3)
     disp([char(10) 'Extracting Parameter combinations for GRF Protocol...']);

@@ -149,13 +149,13 @@ if isequal(gaborIndexFromStimDesc,gaborIndexFromStimulusOn)
         % Added by MD 16-03-2015 for GAV protocol
          if ( isequal(LL.(['stimType' num2str(i-1)]),kAudStim*(ones(1,length(LL.(['stimType' num2str(i-1)])))))...
                 || isequal(LL.(['stimType' num2str(i-1)]),kVisAudStim*(ones(1,length(LL.(['stimType' num2str(i-1)]))))))
-            LL.AuditoryAzimuth=AuditoryAzimuth(gaborIndexFromStimulusOn{i});%+ones(1,size(AuditoryAzimuth(gaborIndexFromStimulusOn{i}),2));
-            LL.AuditoryElevation=AuditoryElevation(gaborIndexFromStimulusOn{i});
-            LL.AuditoryProtType=AuditoryAzimuth(gaborIndexFromStimulusOn{i});
-            LL.RippleFrequency=RippleFrequency(gaborIndexFromStimulusOn{i});%+ones(1,size(RippleFrequency(gaborIndexFromStimulusOn{i}),2));
-            LL.RipplePhase=RipplePhase(gaborIndexFromStimulusOn{i});%+ones(1,size(RipplePhase(gaborIndexFromStimulusOn{i}),2));
-            LL.AuditoryContrast=floor(AuditoryContrast(gaborIndexFromStimulusOn{i}));
-            LL.RippleVelocity=RippleVelocity(gaborIndexFromStimulusOn{i});%+ones(1,size(RippleVelocity(gaborIndexFromStimulusOn{i}),2));            
+            LL.(['AuditoryAzimuth' num2str(i-1)]) = AuditoryAzimuth(gaborIndexFromStimulusOn{i});%+ones(1,size(AuditoryAzimuth(gaborIndexFromStimulusOn{i}),2));
+            LL.(['AuditoryElevation' num2str(i-1)])=AuditoryElevation(gaborIndexFromStimulusOn{i});
+            LL.(['AuditoryProtType' num2str(i-1)])=AuditoryAzimuth(gaborIndexFromStimulusOn{i});
+            LL.(['RippleFrequency' num2str(i-1)])=RippleFrequency(gaborIndexFromStimulusOn{i});%+ones(1,size(RippleFrequency(gaborIndexFromStimulusOn{i}),2));
+            LL.(['RipplePhase' num2str(i-1)])=RipplePhase(gaborIndexFromStimulusOn{i});%+ones(1,size(RipplePhase(gaborIndexFromStimulusOn{i}),2));
+            LL.(['AuditoryContrast' num2str(i-1)])=floor(AuditoryContrast(gaborIndexFromStimulusOn{i}));
+            LL.(['RippleVelocity' num2str(i-1)])=RippleVelocity(gaborIndexFromStimulusOn{i});%+ones(1,size(RippleVelocity(gaborIndexFromStimulusOn{i}),2));            
         end
     end
 else

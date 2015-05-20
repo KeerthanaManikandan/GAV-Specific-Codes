@@ -7,7 +7,7 @@
 
 % Modified by MD
 
-function [allBadTrials,badTrials] = findBadTrialsForGAV(dataLog,threshold,maxLimit,showElectrodes,minLimit,saveDataFlag) 
+function [allBadTrials,badTrials] = findBadTrialsForGAV(dataLog,checkTheseElectrodes,threshold,maxLimit,showElectrodes,minLimit,saveDataFlag) 
 
 % Initialise
 [dataLog,folderName] = getFolderDetails(dataLog);
@@ -15,7 +15,12 @@ function [allBadTrials,badTrials] = findBadTrialsForGAV(dataLog,threshold,maxLim
 % gridType=strjoin(dataLog(2,2));
 % expDate = strjoin(dataLog(3,2));
 % protocolName = strjoin(dataLog(4,2));
-checkTheseElectrodes = (cell2mat(dataLog(7,2)));
+if ~exist('checkTheseElectrodes','var')
+    checkTheseElectrodes = (cell2mat(dataLog(7,2)));
+    disp('Checking bad trials for all electrodes');
+else disp(['Checking bad trials for electrodes: ' num2str(checkTheseElectrodes)]);
+end
+
 if ~exist('saveDataFlag','var');             saveDataFlag = 1;                          end
 
 % folderName = ['C:\Users\LabComputer6\Documents\MATLAB\Extracted_Data\' gridType '\' monkeyName '\' expDate '\' protocolName '\'];

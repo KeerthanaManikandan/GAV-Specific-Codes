@@ -1,5 +1,16 @@
 % This program generates the parameterCombinations variable from the
 % stimResults
+%
+% Murty V P S Dinavahi:
+% Right now, as we are presenting only full screen gratings and auditory
+% stimulus is mapped to only one visual grating, we need only one set of visual
+% parameters and auditory parameters each (plaids are also not necessary, 
+% as none of the protocols involve plaids), though LL and stimResults files are 
+% programmed to carry info from all valid gabors. These could come independently
+% from right or left gabors.
+% Hence, in future, if we want to add info from all gabors, changes need to
+% be done from this program onwards.
+
 function parameterCombinations = getDisplayCombinationsGAV(folderOut)
 
 folderOut = appendIfNotPresent(folderOut,'\');
@@ -56,92 +67,131 @@ if ~exist('goodStimNums','var')
     goodStimNums = getGoodStimNumsGAV(folderOut);
 end
 
-if ~isempty(stimResults.azimuth)
-    aValsAll  = stimResults.azimuth;
+for i=1:length(stimResults.side)
+    switch stimResults.side(i)
+        case 1
+            azimuth = stimResults.(['azimuth' num2str(i)]);
+            elevation = stimResults.(['elevation' num2str(i)]);
+            sigma = stimResults.(['sigma' num2str(i)]);
+            spatialFrequency = stimResults.(['spatialFrequency' num2str(i)]);
+            orientation = stimResults.(['orientation' num2str(i)]);
+            contrast = stimResults.(['contrast' num2str(i)]);
+            temporalFrequency = stimResults.(['temporalFrequency' num2str(i)]);
+        case 6
+            auditoryAzimuth = stimResults.(['auditoryAzimuth' num2str(i)]);
+            auditoryElevation = stimResults.(['auditoryElevation' num2str(i)]);
+            rippleFrequency = stimResults.(['rippleFrequency' num2str(i)]);
+            ripplePhase = stimResults.(['ripplePhase' num2str(i)]);
+            auditoryContrast = stimResults.(['auditoryContrast' num2str(i)]);
+            rippleVelocity = stimResults.(['rippleVelocity' num2str(i)]);
+        case 7
+            if i==1
+                disp('Visual and Auditory stimuli mapped to the LEFT gabor. Hence taking parameter combinations from same gabor...');
+            elseif i==2
+                disp('Visual and Auditory stimuli mapped to the RIGHT gabor. Hence taking parameter combinations from same gabor...');
+            end
+%             azimuth = stimResults.(['azimuth' num2str(i)]);
+%             elevation = stimResults.(['elevation' num2str(i)]);
+%             sigma = stimResults.(['sigma' num2str(i)]);
+%             spatialFrequency = stimResults.(['spatialFrequency' num2str(i)]);
+%             orientation = stimResults.(['orientation' num2str(i)]);
+%             contrast = stimResults.(['contrast' num2str(i)]);
+%             temporalFrequency = stimResults.(['temporalFrequency' num2str(i)]);
+            auditoryAzimuth = stimResults.(['auditoryAzimuth' num2str(i)]);
+            auditoryElevation = stimResults.(['auditoryElevation' num2str(i)]);
+            rippleFrequency = stimResults.(['rippleFrequency' num2str(i)]);
+            ripplePhase = stimResults.(['ripplePhase' num2str(i)]);
+            auditoryContrast = stimResults.(['auditoryContrast' num2str(i)]);
+            rippleVelocity = stimResults.(['rippleVelocity' num2str(i)]);
+    end
+end
+
+if exist('azimuth','var')
+    aValsAll  = azimuth;
     aValsGood = aValsAll(goodStimNums);
     aValsUnique = unique(aValsGood); aLen = length(aValsUnique);
     disp(['Number of unique azimuths: ' num2str(aLen)]);
 end
 
-if ~isempty(stimResults.elevation) 
-    eValsAll  = stimResults.elevation;
+if exist('elevation','var') 
+    eValsAll  = elevation;
     eValsGood = eValsAll(goodStimNums);
     eValsUnique = unique(eValsGood); eLen = length(eValsUnique);
     disp(['Number of unique elevations: ' num2str(eLen)]);
 end
 
-if ~isempty(stimResults.sigma)
-    sValsAll  = stimResults.sigma;
+if exist('sigma','var')
+    sValsAll  = sigma;
     sValsGood = sValsAll(goodStimNums);
     sValsUnique = unique(sValsGood); sLen = length(sValsUnique);
     disp(['Number of unique sigmas: ' num2str(sLen)]);
 end
 
-if ~isempty(stimResults.spatialFrequency)
-    fValsAll  = stimResults.spatialFrequency;
+if exist('spatialFrequency','var')
+    fValsAll  = spatialFrequency;
     fValsGood = fValsAll(goodStimNums);
     fValsUnique = unique(fValsGood); fLen = length(fValsUnique);
     disp(['Number of unique Spatial freqs: ' num2str(fLen)]);
 end
 
-if ~isempty(stimResults.orientation)
-    oValsAll  = stimResults.orientation;
+if exist('orientation','var')
+    oValsAll  = orientation;
     oValsGood = oValsAll(goodStimNums);
     oValsUnique = unique(oValsGood); oLen = length(oValsUnique);
     disp(['Number of unique orientations: ' num2str(oLen)]);
 end
 
-if ~isempty(stimResults.contrast)
-    cValsAll  = stimResults.contrast;
+if exist('contrast','var')
+    cValsAll  = contrast;
     cValsGood = cValsAll(goodStimNums);
     cValsUnique = unique(cValsGood); cLen = length(cValsUnique);
     disp(['Number of unique contrasts: ' num2str(cLen)]);
 end
     
-if ~isempty(stimResults.temporalFrequency)
-    tValsAll  = stimResults.temporalFrequency;
+if exist('temporalFrequency','var')
+    tValsAll  = temporalFrequency;
     tValsGood = tValsAll(goodStimNums);
     tValsUnique = unique(tValsGood); tLen = length(tValsUnique);
     disp(['Number of unique temporal freqs: ' num2str(tLen)]);
 end
     
-if ~isempty(stimResults.auditoryAzimuth)
-    aaValsAll = stimResults.auditoryAzimuth;
+if exist('auditoryAzimuth','var')
+    aaValsAll = auditoryAzimuth;
     aaValsGood = aaValsAll(goodStimNums);   
     aaValsUnique = unique(aaValsGood); aaLen = length(aaValsUnique);
     disp(['Number of unique auditory Azimuths: ' num2str(aaLen)]);
 end
 
-if ~isempty(stimResults.auditoryElevation)
-    aeValsAll = stimResults.auditoryElevation;
+if exist('auditoryElevation','var')
+    aeValsAll = auditoryElevation;
     aeValsGood = aeValsAll(goodStimNums);   
     aeValsUnique = unique(aeValsGood); aeLen = length(aeValsUnique);
     disp(['Number of unique auditory Elevations: ' num2str(aeLen)]);
 end
 
-if ~isempty(stimResults.rippleFrequency)
-    asValsAll = stimResults.rippleFrequency;
+if exist('rippleFrequency','var')
+    asValsAll = rippleFrequency;
     asValsGood = asValsAll(goodStimNums);   
     asValsUnique = unique(asValsGood); asLen = length(asValsUnique);
     disp(['Number of unique ripple Frequencies: ' num2str(asLen)]);
 end
 
-if ~isempty(stimResults.ripplePhase)
-    aoValsAll = stimResults.ripplePhase;
+if exist('ripplePhase','var')
+    aoValsAll = ripplePhase;
     aoValsGood = aoValsAll(goodStimNums);   
     aoValsUnique = unique(aoValsGood); aoLen = length(aoValsUnique);
     disp(['Number of unique ripple Phases: ' num2str(aoLen)]);
 end
 
-if ~isempty(stimResults.auditoryContrast)
-    avValsAll = stimResults.auditoryContrast;
+if exist('auditoryContrast','var')
+    avValsAll = auditoryContrast;
     avValsGood = avValsAll(goodStimNums);
     avValsUnique = unique(avValsGood); avLen = length(avValsUnique);
     disp(['Number of unique auditory Contrasts: ' num2str(avLen)]);
 end
     
-if ~isempty(stimResults.rippleVelocity)
-    atValsAll = stimResults.rippleVelocity;
+if exist('rippleVelocity','var')
+    atValsAll = rippleVelocity;
     atValsGood = atValsAll(goodStimNums);   
     atValsUnique = unique(atValsGood); atLen = length(atValsUnique);
     disp(['Number of unique ripple Velocities: ' num2str(atLen)]);
@@ -236,9 +286,9 @@ for a=1:aLen
                                     end 
                                     for ae=1:aeLen
                                         if ae==aeLen
-                                            aePos = allPos;
+                                            ae2Pos = allPos;
                                         else
-                                            aePos = find(aeValsGood == aeValsUnique(ae));
+                                            ae2Pos = find(aeValsGood == aeValsUnique(ae));
                                         end  
                                         for as=1:asLen
                                         if as==asLen
@@ -273,7 +323,7 @@ for a=1:aLen
                                                                 aesfocPos = intersect(aesfoPos,cPos);
                                                                 aesfoctPos = intersect(aesfocPos,tPos);
                                                                 aesfoctaaPos = intersect(aesfoctPos,aaPos); 
-                                                                aesfoctaaaePos = intersect(aesfoctaaPos,aePos);
+                                                                aesfoctaaaePos = intersect(aesfoctaaPos,ae2Pos);
                                                                 aesfoctaaaeasPos = intersect(aesfoctaaaePos,asPos);
                                                                 aesfoctaaaeasaoPos = intersect(aesfoctaaaeasPos,aoPos);
                                                                 aesfoctaaaeasaoavPos = intersect(aesfoctaaaeasaoPos,avPos);

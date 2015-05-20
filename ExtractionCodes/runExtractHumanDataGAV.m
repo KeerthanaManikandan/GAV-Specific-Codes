@@ -27,8 +27,8 @@ tic;
 timeStartFromBaseLineList(1) = -0.55; deltaTList(1) = 1.024; % in seconds
 timeStartFromBaseLineList(2) = -1.148; deltaTList(2) = 2.048;
 timeStartFromBaseLineList(3) = -1.5; deltaTList(3) = 4.096;
-
 timeStartFromBaseLineList(4) = -1; deltaTList(4) = 3;
+timeStartFromBaseLineList(5) = -0.6; deltaTList(5) = 2.048;
 
 FsEye=200; % This is set by Lablib, not by the Eye tracking system
 
@@ -38,7 +38,7 @@ FsEye=200; % This is set by Lablib, not by the Eye tracking system
 extractTheseIndices = str2num(cell2mat(inputdlg('Index')));
 
 subjectName = 'Human'; gridType = 'EEG'; folderSourceString = 'D:';
-[subjectNames,expDates,protocolNames,stimTypes] = eval(['allProtocols' upper(subjectName(1)) subjectName(2:end) gridType]);
+[subjectNames,expDates,protocolNames,stimTypes,deviceNames] = eval(['allProtocols' upper(subjectName(1)) subjectName(2:end) gridType]);
 clear subjectName
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -46,20 +46,41 @@ electrodesToStore = []; % If left empty, all electrodes are stored
 auxElectrodesToStore = 1:3; % only for Labjack data
 ignoreTargetStimFlag=1; % For GaborRFMap stimuli, set this to 1 if the program is run in the fixation mode. 
 frameRate=100;
-Fs=2000;
+FsBR=2000;
 
-deviceName = 'BR'; % BR: Blackrock, BP: BrainProducts, EGI: EGI
+LJData = 1;
+FsLJ = 2500;
+FsBP = 2500;
 
-ainpSelect = 'ainp6';
-reallignFlag = 1;
+elecType = 'actiCap64';
 
+ainpSelect = '';
+reallignFlag = 0;
 
+% Variables for extracting bad trials
+
+occipitalElec = [61 62 63 29 30 31];
+temporalElec = [12 17 51 23 55 16 27 22];
+centralElec = [19 53 20 25];
+centralElecBrainCap = [18 19 23 24];
+actiCap64GAVCentralElec = [13 14 15 5 25 9 10 19 20 48 49 53]; 
+checkTheseElectrodesForBadTrials = [actiCap64GAVCentralElec]; 
+thresholdBadTrials=6; 
+saveBadTrialsFlag = 1;
+showTrialsBadTrials = 0;
+notchLineNoise = 0;
+
+reRefFlag = 1;
+refElec = 1;
+
+%% Main program
 
 for i=1:length(extractTheseIndices)
     
     subjectName = subjectNames{extractTheseIndices(i)};
     expDate = expDates{extractTheseIndices(i)};
     protocolName = protocolNames{extractTheseIndices(i)};
+    deviceName = deviceNames{extractTheseIndices(i)};
     
     type = stimTypes{extractTheseIndices(i)};
     deltaT = deltaTList(type);
@@ -88,14 +109,22 @@ for i=1:length(extractTheseIndices)
     if strcmpi(deviceName,'BR') || strcmpi(deviceName,'Blackrock')        % Blackrock
             disp([char(10) 'Device name: BlackRock']);
             [hFile,digitalTimeStamps,digitalEvents]=extractDigitalDataBlackrock(subjectName,expDate,protocolName,folderSourceString,gridType);
+            saveDigitalData(digitalEvents,digitalTimeStamps,folderExtract);
     elseif strcmpi(deviceName,'BP') || strcmpi(deviceName,'BrainProducts')  % BrainProducts
             disp([char(10) 'Device name: BrainProducts']);
-            [digitalTimeStamps,digitalEvents]=extractDigitalDataBrainProducts(subjectName,expDate,protocolName,folderSourceString,gridType);
+            try
+                [digitalTimeStamps,digitalEvents]=extractDigitalDataBrainProducts(subjectName,expDate,protocolName,folderSourceString,gridType);
+                saveDigitalData(digitalEvents,digitalTimeStamps,folderExtract);
+                bpFlag = 1;
+            catch err
+                disp('Brain Products file not found or data could not be extracted from brain products file.');
+                bpFlag = 0;
+            end
     end
 
     % Step 2 - Save digital information in a common format.
     % This step creates digitalEvents.mat
-    saveDigitalData(digitalEvents,digitalTimeStamps,folderExtract);
+%     saveDigitalData(digitalEvents,digitalTimeStamps,folderExtract);
 
     %% Integrate digital information
 
@@ -126,12 +155,16 @@ for i=1:length(extractTheseIndices)
         
     elseif strcmpi(deviceName,'BP') || strcmpi(deviceName,'BrainProducts')  % BrainProducts
         if LLFileExistsFlag
-            if strncmpi(protocolName,'GAV',3)
-                displayTSTEComparison(folderExtract);
-                extractDigitalDataGAVLL(folderExtract,ignoreTargetStimFlag,frameRate);
+            if bpFlag
+                    displayTSTEComparison(folderExtract);
+                else
+                    disp('Brain Products file not found or data could not be extracted from brain products file.');
+                    disp('Hence TSTE comparison could not be done.');
+            end
+            if strncmpi(protocolName,'GAV',3)                
+                [goodStimNums,goodStimTimes,side] = extractDigitalDataGAVLL(folderExtract,ignoreTargetStimFlag,frameRate);
             elseif strncmpi(protocolName,'GRF',3)
-                displayTSTEComparison(folderExtract);
-                extractDigitalDataGRFLL(folderExtract,ignoreTargetStimFlag,frameRate);
+                [goodStimNums,goodStimTimes,side] = extractDigitalDataGRFLL(folderExtract,ignoreTargetStimFlag,frameRate);
             end
             %saveEyePositionAndBehaviorData(subjectName,expDate,protocolName,folderSourceString,gridType,FsEye); % As of now this works only if Target and Mapping stimuli have the same duration and ISI
         else
@@ -165,10 +198,16 @@ for i=1:length(extractTheseIndices)
                 getSpikes=0;
             end
             getLFPandSpikesBlackrock(dataLog,folderSourceString,analogChannelsToStore,neuralChannelsToStore,...
-                timeStartFromBaseLine,deltaT,Fs,hFile,getLFP,getSpikes,1);
+                timeStartFromBaseLine,deltaT,FsBR,hFile,getLFP,getSpikes,1);
 
         elseif strcmpi(deviceName,'BP') || strcmpi(deviceName,'BrainProducts')  % BrainProducts
-            getEEGDataBrainProducts(subjectName,expDate,protocolName,folderSourceString,gridType,goodStimTimes,timeStartFromBaseLine,deltaT);
+            try
+                getAuxDataLabjack(subjectName,expDate,protocolName,folderSourceString,gridType,goodStimTimes,timeStartFromBaseLine,deltaT,auxElectrodesToStore,1);
+                LJData = 1;
+            catch
+                disp('Labjack data could not be read or not available.');
+                LJData = 0;
+            end
         end
 
         % Step 2: Get time differences
@@ -186,14 +225,26 @@ for i=1:length(extractTheseIndices)
         getLFP=1;getSpikes=0;
 
         [electrodeNums,elecSampleRate,AinpSampleRate] = getLFPandSpikesBlackrock(dataLog,folderSourceString,analogChannelsToStore,neuralChannelsToStore,...
-        timeStartFromBaseLine,deltaT,Fs,hFile,getLFP,getSpikes,1);
+        timeStartFromBaseLine,deltaT,FsBR,hFile,getLFP,getSpikes,1);        
+        if ~isempty(ainpSelect)
+            getStimStartTimes(dataLog,ainpSelect,6,0);
+        end
         
-    elseif strcmpi(deviceName,'BP') || strcmpi(deviceName,'BrainProducts')  % BrainProducts        
-        getEEGDataBrainProducts(subjectName,expDate,protocolName,folderSourceString,gridType,goodStimTimes,timeStartFromBaseLine,deltaT);
-        getAuxDataLabjack(subjectName,expDate,protocolName,folderSourceString,gridType,goodStimTimes,timeStartFromBaseLine,deltaT,auxElectrodesToStore);
+    elseif strcmpi(deviceName,'BP') || strcmpi(deviceName,'BrainProducts')  % BrainProducts   
+        clear goodStimNums goodStimTimes side;
+        load(fullfile(folderExtract,'goodStimNums.mat'));
+        if bpFlag
+            electrodesStored = getEEGDataBrainProducts(subjectName,expDate,protocolName,folderSourceString,gridType,goodStimTimes,timeStartFromBaseLine,deltaT,notchLineNoise,reRefFlag,refElec);
+        else
+            disp('Brain Products file not found or data could not be extracted from brain products file.');
+        end
+        if LJData
+            getAuxDataLabjack(subjectName,expDate,protocolName,folderSourceString,gridType,goodStimTimes,timeStartFromBaseLine,deltaT,auxElectrodesToStore,0);
+            if ~isempty(ainpSelect)
+                getStimStartTimes(dataLog,ainpSelect,6,0);
+            end
+        end
     end
-    
-    getStimStartTimes(dataLog,ainpSelect,6,0);
     
     %% Save a log of the extraction for further analyses
 
@@ -207,19 +258,32 @@ for i=1:length(extractTheseIndices)
     dataLog{8,1}='badTrials';
 
     dataLog{5,2}=timeStartFromBaseLine;
-    dataLog{6,2}=deltaT;
-    dataLog{7,2}=electrodeNums;
+    dataLog{6,2}=deltaT;  
 
+    dataLog(9,1)=cellstr('elecSampleRate');
+    dataLog(10,1)=cellstr('AinpSampleRate');
+    
+    if strcmp(deviceName,'BR')
+        dataLog{7,2}=electrodeNums;
+        dataLog(9,2)={elecSampleRate};
+        dataLog(10,2)={AinpSampleRate};
+    elseif strcmp(deviceName,'BP')
+        dataLog{7,2}=length(electrodesStored);
+        dataLog(9,2)={FsBP};
+        if LJData
+            dataLog(10,2)={FsLJ};
+        else
+            dataLog{10,2}=[];
+        end
+    end
+    
     if (~isempty(dataLog{7,2}))
         runFindBadTrialsGAV;
         dataLog(8,2)={badTrials};
     else
         dataLog(8,2)={[]};
     end
-    dataLog(9,1)=cellstr('elecSampleRate');
-    dataLog(9,2)={elecSampleRate};
-    dataLog(10,1)=cellstr('AinpSampleRate');
-    dataLog(10,2)={AinpSampleRate};
+    
 
     dataLog{11,1}='LLData';    
     dataLog{11,2}='YES';   
@@ -235,6 +299,8 @@ for i=1:length(extractTheseIndices)
     end
     
     dataLog{14,1} = 'folderSourceString';
+    dataLog{15,1} = 'Montage';
+    dataLog{15,2} = elecType;
 
     save(fullfile(folderName,'dataLog.mat'), 'dataLog');
 
