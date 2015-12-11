@@ -8,6 +8,7 @@ timeStartFromBaseLineList(2) = -1.148; deltaTList(2) = 2.048;
 timeStartFromBaseLineList(3) = -1.5; deltaTList(3) = 4.096;
 timeStartFromBaseLineList(4) = -1; deltaTList(4) = 3;
 timeStartFromBaseLineList(5) = -0.524; deltaTList(5) = 2.048;
+timeStartFromBaseLineList(6) = -0.5; deltaTList(6) = 2.048; % For BP data with Fs = 2000: Compatible with matching pursuit
 
 % FsEye=200; % This is set by Lablib, not by the Eye tracking system
 

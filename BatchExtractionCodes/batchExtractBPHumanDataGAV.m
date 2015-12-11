@@ -1,19 +1,23 @@
-function batchExtractBPHumanDataGAV(extractTheseIndices,extractProp,expProp,timeStartFromBaseLineList,deltaTList)
+% batchExtractBPHumanDataGAV
+% This is the only maintained extraction code, common for both BR and BP.
+% EGI codes need to added. Please don't change the code unless needed.
+%
+% Murty V P S Dinavahi 30/11/2015
+%
+function batchExtractBPHumanDataGAV(extractTheseIndices,extractProp,expProp,timeStartFromBaseLineList,deltaTList,gridType,folderSourceString)
 
 for iIndex = 1:length(extractTheseIndices)
 
     tic;
-    clearvars -except extractTheseIndices extractProp expProp timeStartFromBaseLineList deltaTList iIndex;
+    clearvars -except extractTheseIndices extractProp expProp timeStartFromBaseLineList deltaTList iIndex gridType folderSourceString;
     electrodesToStore = extractProp.electrodesToStore;
     ignoreTargetStimFlag = extractProp.ignoreTargetStimFlag;
     FsEye = extractProp.FsEye;
-    frameRate = extractProp.frameRate;
-    elecTypeVal = extractProp.elecTypeVal; 
-    gridLayout = extractProp.gridLayout; 
+    frameRate = extractProp.frameRate;  
     reallignElec = extractProp.reallignElec;
     reallignFlag = extractProp.reallignFlag; 
     badTrialsFlag = extractProp.badTrialsFlag;
-    checkTheseElectrodesForBadTrials = extractProp.checkTheseElectrodesForBadTrials;
+    
     thresholdBadTrials = extractProp.thresholdBadTrials; 
     saveBadTrialsFlag = extractProp.saveBadTrialsFlag; 
     showTrialsBadTrials = extractProp.showTrialsBadTrials;
@@ -29,7 +33,7 @@ for iIndex = 1:length(extractTheseIndices)
     expDate = expProp.expDates{extractTheseIndices(iIndex)};
     protocolName = expProp.protocolNames{extractTheseIndices(iIndex)};
     deviceName = expProp.deviceNames{extractTheseIndices(iIndex)};
-    gridType = 'EEG'; folderSourceString = 'D:';
+    capLayout = expProp.capLayout{extractTheseIndices(iIndex)};
     type = expProp.stimTypes{extractTheseIndices(iIndex)};
     deltaT = deltaTList(type);
     timeStartFromBaseLine = timeStartFromBaseLineList(type);
@@ -41,21 +45,15 @@ for iIndex = 1:length(extractTheseIndices)
     dataLog{14,2} = folderSourceString;
 
     if strcmp(deviceName,'BR')
-        disp('This index corresponds to BR data. Hence aborting extraction of this index.');
-        elapsedTime = toc/60;
-        disp([char(10) 'Total time taken: ' num2str(elapsedTime) ' min.']);
-        disp('dataLog not saved');
-        return;
+        FsBR = extractProp.FsBR;
     elseif strcmp(deviceName,'BP')
-        FsBP=2500;
+        FsBP = extractProp.FsBP;
     end
     
-    if gridLayout == 1             
-        elecType = 'easyCap64';
-    elseif gridLayout == 2
-        elecType = 'actiCap64';
-    else
-        elecType = 'others';
+    if strcmp(capLayout,'brainCap64') 
+        checkTheseElectrodesForBadTrials = extractProp.checkTheseElectrodesForBadTrialsBrainCap64;
+    elseif strcmp(capLayout,'actiCap64') 
+        checkTheseElectrodesForBadTrials = extractProp.checkTheseElectrodesForBadTrialsActiCap64;
     end
     
     if ~isempty(reallignElec)
@@ -76,11 +74,8 @@ for iIndex = 1:length(extractTheseIndices)
     diary(fullfile(folderName,'ExtractionReport.txt'));
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-    % Get Digital Data
-
-    % Step 1 - extract the digital data from a particular data acquisition
+    % Get Digital Data: extract the digital data from a particular data acquisition
     % system. Each data acquisition system has a different program. 
-    % This step creates extractedData folder and NEVFileInfo.mat
 
     disp('Saving digital data from neural files...');
     if strcmpi(deviceName,'BR') || strcmpi(deviceName,'Blackrock')        % Blackrock
@@ -100,10 +95,6 @@ for iIndex = 1:length(extractTheseIndices)
                 bpFlag = 0;
             end
     end
-
-    % Step 2 - Save digital information in a common format.
-    % This step creates digitalEvents.mat
-%     saveDigitalData(digitalEvents,digitalTimeStamps,folderExtract);
 
     % Integrate digital information
 
@@ -292,7 +283,7 @@ for iIndex = 1:length(extractTheseIndices)
     
     dataLog{14,1} = 'folderSourceString';
     dataLog{15,1} = 'Montage';
-    dataLog{15,2} = elecType;
+    dataLog{15,2} = capLayout;
     dataLog{16,1} = 'Re-Ref Elec';
     
     if reRefFlag

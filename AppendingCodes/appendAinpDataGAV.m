@@ -27,7 +27,13 @@ for iAC = 1:totAinpNum
 
         clear analogDataPath analogData 
         analogDataPath = fullfile(folderLFP,['ainp' num2str(analogChannelsStored(iAC)) '.mat']);
-        analogData = loadAnalogData(analogDataPath);
+        try
+            analogData = loadAnalogData(analogDataPath);
+        catch
+            disp(['Total analog channels: ' num2str(iAC-1)]);
+            close(hWElec);
+            return
+        end
         analogDataFinal = [analogDataFinal;analogData];
     end
     

@@ -13,20 +13,22 @@
 % This is copied from extractDigitalDataGRF. This reads all the digital
 % data from LL file
 
-function [goodStimNums,goodStimTimes,side] = extractDigitalDataGAVLL(folderExtract,ignoreTargetStimFlag,frameRate)
+function [goodStimNums,goodStimTimes,side] = extractDigitalDataGAVLL(folderExtract,ignoreTargetStimFlag,frameRate,useSingelITC18Flag)
 
 if ~exist('ignoreTargetStimFlag','var');   ignoreTargetStimFlag=1;      end % Default set to 1 by MD
 if ~exist('frameRate','var');              frameRate=100;               end
+if ~exist('useSingelITC18Flag','var'); useSingelITC18Flag = 1; end
 
-stimResults = readDigitalCodesGAVLL(folderExtract,frameRate); % writes stimResults and trialResults
+stimResults = readDigitalCodesGAVLL(folderExtract,frameRate,useSingelITC18Flag); % writes stimResults and trialResults
 side = stimResults.side;
 [goodStimNums,goodStimTimes] = getGoodStimNumsGAV(folderExtract,ignoreTargetStimFlag,1); % Good stimuli
 save(fullfile(folderExtract,'goodStimNums.mat'),'goodStimNums','goodStimTimes');
 end
 
 % GRF Specific protocols
-function [stimResults,trialResults,trialEvents] = readDigitalCodesGAVLL(folderExtract,frameRate)
+function [stimResults,trialResults,trialEvents] = readDigitalCodesGAVLL(folderExtract,frameRate,useSingelITC18Flag)
 
+if ~exist('useSingelITC18Flag','var'); useSingelITC18Flag = 1; end
 if ~exist('frameRate','var');              frameRate=100;               end
 
 % stimType (MD)
@@ -51,11 +53,17 @@ end
 
 if fileFlag
     allDigitalCodesInDec = [digitalCodeInfo.codeNumber];
+    
+    if isempty(find(allDigitalCodesInDec>256,1)) % MD: 07/12/15: based on Supratim's advice
+        useSimpleCodeFlag = 1;
+    else
+        useSimpleCodeFlag = 0;
+    end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Find the times and values of the events in trialEvents
 
     for i=1:length(trialEvents)
-        pos = find(convertStrCodeToDec(trialEvents{i})==allDigitalCodesInDec);
+        pos = find(convertStrCodeToDec(trialEvents{i},useSingelITC18Flag,useSimpleCodeFlag)==allDigitalCodesInDec);
         if isempty(pos)
             disp(['Code ' trialEvents{i} ' not found!!']);
         else
@@ -204,8 +212,16 @@ catchTrials = LL.catchTrial;
 trialCertify = LL.trialCertify;
 
 if fileFlag
-    trialStartTimes = [digitalCodeInfo(find(convertStrCodeToDec('TS')==allDigitalCodesInDec)).time];
-    eotCodes = convertUnits([digitalCodeInfo(find(convertStrCodeToDec('TE')==allDigitalCodesInDec)).value])';
+    trialStartTimes = [digitalCodeInfo(find(convertStrCodeToDec('TS',useSingelITC18Flag,useSimpleCodeFlag)==allDigitalCodesInDec)).time];
+%     eotCodes = convertUnits([digitalCodeInfo(find(convertStrCodeToDec('TE',useSingelITC18Flag,useSimpleCodeFlag)==allDigitalCodesInDec)).value])';
+
+    % MD: 07/12/15: As values are not sent in the current GaborRFMap plugin, we take these from LLData
+    if length([digitalCodeInfo(find(convertStrCodeToDec('TE',useSingelITC18Flag,useSimpleCodeFlag)==allDigitalCodesInDec)).time]) == length(LL.eotCode)
+        eotCodes = LL.eotCode; 
+    else
+        error('Number of TE (Digital stream) and EOT Codes (LL Data) are not equal...')
+    end
+    
     numTrials = length(trialStartTimes);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Instruction trials
