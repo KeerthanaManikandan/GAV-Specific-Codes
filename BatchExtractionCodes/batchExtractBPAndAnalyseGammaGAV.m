@@ -30,9 +30,6 @@ for iArg = 1:nargin
     disp('Bipolar Referencing...');
     compareBandPowerPerProtocol(dataLog,[],[],[],[],[],'Bipolar');
     
-    disp('Hemisphere Referencing...');
-    compareBandPowerPerProtocol(dataLog,[],[],[],[],[],'Hemisphere');
-    
 end
     
 end
