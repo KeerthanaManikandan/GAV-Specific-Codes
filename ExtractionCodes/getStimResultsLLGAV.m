@@ -187,7 +187,7 @@ end
 
 end
 
-function [allTrials,goodTrials,stimData,eyeData,eyeRangeMS] = getEyePositionAndBehavioralDataGAV(header,eyeRangeMS,Fs)
+function [allTrials,goodTrials,stimData,eyeData,eyeRangeMS] = getEyePositionAndBehavioralDataGAV(header,eyeRangeMS,Fs) % [MD]: This needs to be tested for GAV protocol
     % Getting eye position and behavioural data
     if ~exist('eyeRangeMS','var')           eyeRangeMS = [-480 800];        end    % ms
     if ~exist('Fs','var')                   Fs = 200;                       end % Eye position sampled at 200 Hz.

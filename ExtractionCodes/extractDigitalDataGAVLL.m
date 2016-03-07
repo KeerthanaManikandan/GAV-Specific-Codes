@@ -1,16 +1,6 @@
-% This function is used to extract the digital data for the GRF Protocol.
+% This function is used to extract the digital data for the GAV Protocol.
 
-% These are the following modes in which the GaborRFMap protocol has been used so far.
-
-% 1. Target and mapping stimulus 0 are on and are presented synchronously,
-% while mapping stimulus 1 is off. Digital codes are sent only for map0 stimulus.
-
-% 2. The task is run in the fixation mode, in which target stimulus is off
-% and all trials are catch trials. Digital codes are sent only for map0
-% stimulus. The invisible target is assumed to be synchronous with the
-% mapping stimulus in this case. 
-
-% This is copied from extractDigitalDataGRF. This reads all the digital
+% This is copied from extractDigitalDataGRFLL by Murty V P S Dinavahi. This reads all the digital
 % data from LL file
 
 function [goodStimNums,goodStimTimes,side] = extractDigitalDataGAVLL(folderExtract,ignoreTargetStimFlag,frameRate,useSingelITC18Flag)

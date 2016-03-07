@@ -54,6 +54,8 @@ for iIndex = 1:length(extractTheseIndices)
         checkTheseElectrodesForBadTrials = extractProp.checkTheseElectrodesForBadTrialsBrainCap64;
     elseif strcmp(capLayout,'actiCap64') 
         checkTheseElectrodesForBadTrials = extractProp.checkTheseElectrodesForBadTrialsActiCap64;
+    else
+        checkTheseElectrodesForBadTrials = []; % EGI
     end
     
     if ~isempty(reallignElec)
@@ -94,6 +96,18 @@ for iIndex = 1:length(extractTheseIndices)
                 disp(err);
                 bpFlag = 0;
             end
+            
+    elseif strcmpi(deviceName,'EG') || strcmpi(deviceName,'EGI')  % EGI
+        try
+            [digitalTimeStamps,digitalEvents]=extractDigitalDataEGI(subjectName,expDate,protocolName,folderSourceString,gridType);
+            saveDigitalData(digitalEvents,digitalTimeStamps,folderExtract);
+            egFlag = 1;
+        catch err
+            disp('EGI .mat file not found or data could not be extracted from EGI .mat file.');
+            disp('Specific Error: ')
+            disp(err);
+            egFlag = 0;
+        end
     end
 
     % Integrate digital information
@@ -141,6 +155,24 @@ for iIndex = 1:length(extractTheseIndices)
             %saveEyePositionAndBehaviorData(subjectName,expDate,protocolName,folderSourceString,gridType,FsEye); % As of now this works only if Target and Mapping stimuli have the same duration and ISI
         else
             error('With BrainProducts, digital codes cannot be obtained without Lablib File...');
+        end
+        
+    elseif strcmpi(deviceName,'EG') || strcmpi(deviceName,'EGI')  % BrainProducts
+        if LLFileExistsFlag
+            if egFlag
+                figure; displayTSTEComparison(folderExtract);
+            else
+                disp('EGI .mat file not found or data could not be extracted from EGI .mat file.');
+                disp('Hence TSTE comparison could not be done.');
+            end
+            if strncmpi(protocolName,'GAV',3)                
+                [goodStimNums,goodStimTimes,side] = extractDigitalDataGAVLL(folderExtract,ignoreTargetStimFlag,frameRate);
+            elseif strncmpi(protocolName,'GRF',3)
+                [goodStimNums,goodStimTimes,side] = extractDigitalDataGRFLL(folderExtract,ignoreTargetStimFlag,frameRate);
+            end
+            %saveEyePositionAndBehaviorData(subjectName,expDate,protocolName,folderSourceString,gridType,FsEye); % As of now this works only if Target and Mapping stimuli have the same duration and ISI
+        else
+            error('With EGI, digital codes cannot be obtained without Lablib File...');
         end
     end
 
@@ -225,9 +257,17 @@ for iIndex = 1:length(extractTheseIndices)
             if ~isempty(ainpSelect)
                 getStimStartTimes(dataLog,ainpSelect,6,0);
             end
+        end    
+    
+    elseif strcmpi(deviceName,'EG') || strcmpi(deviceName,'EGI')  % EGI   
+        clear goodStimNums goodStimTimes side;
+        load(fullfile(folderExtract,'goodStimNums.mat'));
+        if egFlag
+            [electrodesStored,FsEG] = getEEGDataEGI(subjectName,expDate,protocolName,folderSourceString,gridType,goodStimTimes,timeStartFromBaseLine,deltaT,notchLineNoise,reRefFlag,refElec);
+        else
+            disp('EGI .mat file not found or data could not be extracted from EGI .mat file.');
         end
     end
-    
     % Save a log of the extraction for further analyses
 
     dataLog{1,1}='subjectName';
@@ -257,6 +297,9 @@ for iIndex = 1:length(extractTheseIndices)
         else
             dataLog{10,2}=[];
         end
+    elseif strcmp(deviceName,'EG')
+        dataLog{7,2}=electrodesStored;
+        dataLog(9,2)={FsEG};
     end
     
     if (~isempty(dataLog{7,2})) && badTrialsFlag

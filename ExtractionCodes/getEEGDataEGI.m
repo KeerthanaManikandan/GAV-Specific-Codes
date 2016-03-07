@@ -11,7 +11,7 @@
 % Supratim Ray,
 % March 2015
 
-function electrodesStored = getEEGDataEGI(subjectName,expDate,protocolName,folderSourceString,gridType,...
+function [electrodesStored,Fs] = getEEGDataEGI(subjectName,expDate,protocolName,folderSourceString,gridType,...
     goodStimTimes,timeStartFromBaseLine,deltaT,notchLineNoise,reRefFlag,refElec,decimateFlag,decimationFactor)
 
 if ~exist('notchLineNoise','var'); notchLineNoise = 0; end;
@@ -20,7 +20,7 @@ if ~exist('decimateFlag','var'); decimateFlag = 0; end;
 if ~exist('decimationFactor','var'); decimationFactor = 1; end;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-fileName = [subjectName expDate protocolName '.mat']; % EGI gives MATLAB data
+fileName = [subjectName expDate protocolName]; % EGI gives MATLAB data
 
 dataLog{1,2} = subjectName;
 dataLog{2,2} = gridType;
@@ -146,7 +146,7 @@ if (cAnalog>0)
     end
     close(hW);
     
-    % Write LFP information. For backward compatibility, we also save
+    % Write EEG information. For backward compatibility, we also save
     % analogChannelsStored which is the list of electrode data
     electrodesStored = analogInputNums;
     analogChannelsStored = electrodesStored;
@@ -158,4 +158,5 @@ function [EEGData,EEGSamplingRate] = loadEGIFile(folderIn,fileName)
     load(fullfile(folderIn,fileName));
     variableName = appendIfNotPresent(fileName,'_filmff');
     eval(['EEGData = ',variableName,';']);
+%     eval(['EEGData = ',fileName,';']);
 end

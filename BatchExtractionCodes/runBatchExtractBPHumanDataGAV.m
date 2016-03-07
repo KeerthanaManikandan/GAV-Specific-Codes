@@ -33,7 +33,7 @@ timeStartFromBaseLineList(2) = -1.148; deltaTList(2) = 2.048;
 timeStartFromBaseLineList(3) = -1.5; deltaTList(3) = 4.096;
 timeStartFromBaseLineList(4) = -1; deltaTList(4) = 3;
 timeStartFromBaseLineList(5) = -1; deltaTList(5) = 3.2768; % For BP data with Fs = 2500: Compatible with matching pursuit
-timeStartFromBaseLineList(6) = -0.5; deltaTList(6) = 2.048; % For BR data with Fs = 2000: Compatible with matching pursuit
+timeStartFromBaseLineList(6) = -0.5; deltaTList(6) = 2.048; % For BR data (Fs = 2000) and EG Data (Fs = 1000): Compatible with matching pursuit
 
 subjectName = 'Human'; gridType = 'EEG'; folderSourceString = 'D:'; 
 [expProp.subjectNames,expProp.expDates,expProp.protocolNames,expProp.stimTypes,expProp.deviceNames,expProp.capLayout] = eval(['allProtocols' upper(subjectName(1)) subjectName(2:end) gridType]);
